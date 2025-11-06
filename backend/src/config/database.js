@@ -1,38 +1,44 @@
 const mongoose = require('mongoose');
 
+let cachedConnection = null;
+
 const connectDB = async () => {
+  // If we have a cached connection, reuse it
+  if (cachedConnection && mongoose.connection.readyState === 1) {
+    console.log('✅ Using cached database connection');
+    return cachedConnection;
+  }
+
   try {
+    // Remove deprecated options - they're no longer needed in Mongoose 6+
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000,
     });
 
+    cachedConnection = conn;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`📊 Database: ${conn.connection.name}`);
+
+    // Connection event handlers
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose connected to MongoDB');
+    });
+
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ Mongoose connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('Mongoose disconnected from MongoDB');
+    });
+
+    return conn;
   } catch (error) {
     console.error(`❌ Error connecting to MongoDB: ${error.message}`);
-    process.exit(1);
+    cachedConnection = null;
+    // Don't exit in serverless - throw error instead
+    throw error;
   }
 };
-
-// Handle connection events
-mongoose.connection.on('connected', () => {
-  console.log('Mongoose connected to MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error(`Mongoose connection error: ${err}`);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose disconnected from MongoDB');
-});
-
-// Handle process termination
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('Mongoose connection closed due to app termination');
-  process.exit(0);
-});
 
 module.exports = connectDB;
