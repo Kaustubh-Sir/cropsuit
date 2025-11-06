@@ -1,5 +1,5 @@
-# 🚀 Cropsuit Backend - Quick Start Guide
-
+# Quick Start Guide
+# 🚀 Cropsuit Backend -
 ## What's Included
 
 ✅ Complete Node.js/Express backend
