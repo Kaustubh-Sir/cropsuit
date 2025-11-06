@@ -41,7 +41,7 @@ const fertilizerRoutes = require('./routes/fertilizerRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const cropRecommendationRoutes = require('./routes/cropRecommendationRoutes');
 const seasonalPlanRoutes = require('./routes/seasonalPlanRoutes');
-const farmonautRoutes = require('./routes/farmonautRoutes'); // ← ADD THIS LINE
+const farmonautRoutes = require('./routes/farmonautRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -50,7 +50,7 @@ app.use('/api/fertilizer-recommendations', fertilizerRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/crop-recommendations', cropRecommendationRoutes);
 app.use('/api/seasonal-plans', seasonalPlanRoutes);
-app.use('/api/farmonaut', farmonautRoutes); // ← ADD THIS LINE
+app.use('/api/farmonaut', farmonautRoutes);
 
 // Health check route
 app.get('/', (req, res) => {
@@ -141,10 +141,11 @@ app.use((req, res, next) => {
 // Error handler middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`
+// Only start server if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 5000;
+  const server = app.listen(PORT, () => {
+    console.log(`
   ╔═══════════════════════════════════════════════════════╗
   ║                                                       ║
   ║   🌾 CROPSUIT API SERVER                             ║
@@ -156,14 +157,16 @@ const server = app.listen(PORT, () => {
   ║   📚 API Documentation: http://localhost:${PORT}/api  ║
   ║                                                       ║
   ╚═══════════════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`❌ Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err, promise) => {
+    console.log(`❌ Error: ${err.message}`);
+    // Close server & exit process
+    server.close(() => process.exit(1));
+  });
+}
 
+// Export app for Vercel serverless functions
 module.exports = app;
