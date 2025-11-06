@@ -87,8 +87,6 @@ export default api;
 ## 📚 Documentation Files
 
 - `README.md` - Overview and features
-- `SETUP_GUIDE.md` - Detailed setup instructions
-- `API_DOCUMENTATION.md` - Complete API reference
 
 ## 🌐 Main Endpoints
 
